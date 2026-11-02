@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>小比兔 每日躺平時鐘</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="小比躺平">
+  <link rel="apple-touch-icon" href="images/icon-512.png">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background-color: #f7f8fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 32px;
+      padding: 30px 24px 26px 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+      text-align: center;
+      border: 1px solid #ebebeb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    
+    .brand-tag {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #bbb;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* 模式切換標籤頁 */
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+      background: #f0f1f4;
+      padding: 4px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+    .mode-tab {
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: #777;
+      padding: 6px 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: #ffffff;
+      color: #111;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* 主時間顯示：56px 大字 */
+    .clock-display {
+      font-family: "Courier New", Courier, monospace, sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      color: #111111;
+      letter-spacing: 2px;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    /* 控制面板 */
+    .control-panel {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .panel-btn {
+      background: #111;
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .panel-btn.secondary {
+      background: #f0f1f4;
+      color: #555;
+      border: 1px solid #e0e2e6;
+    }
+    .panel-btn:active {
+      transform: scale(0.96);
+    }
+    .alarm-input {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      outline: none;
+      background: #fafafa;
+    }
+
+    /* 自選音樂按鈕小標籤 */
+    .audio-upload-label {
+      font-size: 11px;
+      color: #888;
+      background: #f0f1f4;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-block;
+      margin-bottom: 10px;
+      border: 1px dashed #ccc;
+    }
+    .audio-upload-label:hover {
+      background: #e8eaed;
+      color: #333;
+    }
+
+    /* 小比圖片區域 */
+    .image-box {
+      width: 250px;
+      height: 155px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .xiaobi-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      transition: opacity 0.3s ease, transform 0.2s ease;
+    }
+    .xiaobi-img:active {
+      transform: scale(0.95);
+    }
+
+    .quote-box {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      padding: 0 12px;
+    }
+    .quote-zh {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333333;
+      line-height: 1.5;
+    }
+
+    /* 換姿勢按鈕 */
+    .action-btn {
+      background: #f0f1f4;
+      color: #666666;
+      border: 1px solid #e2e4e8;
+      padding: 8px 18px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      background: #e6e8ec;
+      color: #222222;
+    }
+    .action-btn:active {
+      transform: scale(0.96);
+      background: #dadde2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 隱藏的音訊元件與上傳檔案輸入框 -->
+  <audio id="customAudio"></audio>
+  <input type="file" id="audioFileInput" accept="audio/*" style="display: none;" onchange="handleAudioUpload(event)">
+
+  <div class="card-container">
+    <div class="brand-tag">lazy life.</div>
+
+    <!-- 模式切換 -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('clock')">時鐘</button>
+      <button class="mode-tab" onclick="switchMode('pomo')">番茄鐘</button>
+      <button class="mode-tab" onclick="switchMode('alarm')">鬧鐘</button>
+    </div>
+
+    <!-- 主時間顯示器 -->
+    <div id="mainDisplay" class="clock-display">00:00:00</div>
+
+    <!-- 番茄鐘控制面板 -->
+    <div id="pomoControls" class="control-panel">
+      <button class="panel-btn" id="pomoBtn" onclick="togglePomo()">開始專注 (25分)</button>
+      <button class="panel-btn secondary" onclick="resetPomo(5)">休息 (5分)</button>
+      <button class="panel-btn secondary" onclick="resetPomo(25)">重設</button>
+    </div>
+
+    <!-- 鬧鐘控制面板 -->
+    <div id="alarmControls" class="control-panel">
+      <input type="time" id="alarmTimeInput" class="alarm-input">
+      <button class="panel-btn" id="alarmSetBtn" onclick="toggleAlarm()">設定鬧鐘</button>
+    </div>
+
+    <!-- 供使用者自選 MP3 的小標籤（非必選，預設有蜂鳴音） -->
+    <div>
+      <label for="audioFileInput" class="audio-upload-label" id="audioLabel">🎵 鈴聲：預設鬧鈴 (點此自選 MP3)</label>
+    </div>
+
+    <!-- 小比兔圖片 -->
+    <div class="image-box">
+      <img id="cardImage" class="xiaobi-img" src="" alt="小比兔">
+    </div>
+
+    <!-- 廢話金句 -->
+    <div class="quote-box">
+      <div id="quoteZh" class="quote-zh">加載中...</div>
+    </div>
+
+    <button class="action-btn" onclick="manualDraw()">換個姿勢躺平</button>
+  </div>
+
+  <script>
+    // === 雙軌音效系統：支援自訂 MP3 + 預設強效蜂鳴 ===
+    let customAudioUrl = null;
+    let audioCtx = null;
+
+    function ensureAudioUnlocked() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    document.addEventListener('click', ensureAudioUnlocked, { once: false });
+
+    // 處理使用者自己上傳的 MP3
+    function handleAudioUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        customAudioUrl = URL.createObjectURL(file);
+        const audioElement = document.getElementById('customAudio');
+        audioElement.src = customAudioUrl;
+        document.getElementById('audioLabel').innerText = `🎵 鈴聲：${file.name.substring(0, 12)}... (已更換)`;
+      }
+    }
+
+    // 預設強效蜂鳴（方波、大音量）
+    function playDefaultBeep() {
+      function playTone(freq, duration, delay) {
+        setTimeout(() => {
+          try {
+            ensureAudioUnlocked();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+          } catch(e) {}
+        }, delay);
+      }
+      playTone(880, 0.15, 0);
+      playTone(880, 0.15, 200);
+      playTone(880, 0.15, 400);
+      playTone(1174, 0.35, 600);
+    }
+
+    // 統一發聲入口：有自選 MP3 就播 MP3，沒有就響預設蜂鳴
+    function playBeep() {
+      if (customAudioUrl) {
+        const audioElement = document.getElementById('customAudio');
+        audioElement.currentTime = 0;
+        audioElement.play().catch(() => playDefaultBeep());
+      } else {
+        playDefaultBeep();
+      }
+    }
+
+    // === 模式切換邏輯 ===
+    let currentMode = 'clock';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      const tabs = document.querySelectorAll('.mode-tab');
+      if (mode === 'clock') tabs[0].classList.add('active');
+      if (mode === 'pomo') tabs[1].classList.add('active');
+      if (mode === 'alarm') tabs[2].classList.add('active');
+
+      document.getElementById('pomoControls').style.display = (mode === 'pomo') ? 'flex' : 'none';
+      document.getElementById('alarmControls').style.display = (mode === 'alarm') ? 'flex' : 'none';
+
+      if (mode === 'clock') updateClock();
+      if (mode === 'pomo') renderPomoDisplay();
+      if (mode === 'alarm') updateClock();
+    }
+
+    // === 1. 即時時鐘與鬧鐘判斷邏輯 ===
+    let alarmTime = null;
+    let alarmTriggered = false;
+
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${h}:${m}:${s}`;
+
+      if (currentMode === 'clock' || currentMode === 'alarm') {
+        document.getElementById('mainDisplay').innerText = timeStr;
+      }
+
+      const currentHM = `${h}:${m}`;
+      if (alarmTime && currentHM === alarmTime && !alarmTriggered) {
+        alarmTriggered = true;
+        playBeep();
+        triggerAlarmAlert();
+      }
+      if (alarmTime && currentHM !== alarmTime) {
+        alarmTriggered = false;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function toggleAlarm() {
+      const input = document.getElementById('alarmTimeInput');
+      const btn = document.getElementById('alarmSetBtn');
+      if (!alarmTime) {
+        if (!input.value) return;
+        alarmTime = input.value;
+        btn.innerText = `取消 (${alarmTime})`;
+        btn.classList.add('secondary');
+      } else {
+        alarmTime = null;
+        btn.innerText = '設定鬧鐘';
+        btn.classList.remove('secondary');
+      }
+    }
+
+    function triggerAlarmAlert() {
+      document.getElementById('cardImage').src = "images/xiaobi-15.png";
+      document.getElementById('quoteZh').innerText = "鬧鐘響了！雖然醒來很殘忍，但再不起床問題就大了。";
+    }
+
+    // === 2. 番茄鐘邏輯 ===
+    let pomoSeconds = 25 * 60;
+    let pomoTimer = null;
+    let isPomoRunning = false;
+
+    function renderPomoDisplay() {
+      const m = String(Math.floor(pomoSeconds / 60)).padStart(2, '0');
+      const s = String(pomoSeconds % 60).padStart(2, '0');
+      document.getElementById('mainDisplay').innerText = `${m}:${s}`;
+    }
+
+    function togglePomo() {
+      const btn = document.getElementById('pomoBtn');
+      if (isPomoRunning) {
+        clearInterval(pomoTimer);
+        isPomoRunning = false;
+        btn.innerText = '繼續';
+      } else {
+        isPomoRunning = true;
+        btn.innerText = '暫停';
+        pomoTimer = setInterval(() => {
+          if (pomoSeconds > 0) {
+            pomoSeconds--;
+            renderPomoDisplay();
+          } else {
+            clearInterval(pomoTimer);
+            isPomoRunning = false;
+            btn.innerText = '開始專注';
+            playBeep();
+            document.getElementById('cardImage').src = "images/xiaobi-02.png";
+            document.getElementById('quoteZh').innerText = "時間到了，合法躺平時間開始，誰叫你都別理。";
+          }
+        }, 1000);
+      }
+    }
+
+    function resetPomo(mins) {
+      clearInterval(pomoTimer);
+      isPomoRunning = false;
+      pomoSeconds = mins * 60;
+      document.getElementById('pomoBtn').innerText = mins === 25 ? '開始專注 (25分)' : '開始休息';
+      renderPomoDisplay();
+    }
+
+    // === 3. 小比兔卡牌資料庫 ===
+    const specialCards = [
+      { img: "images/xiaobi-02.png", zh: "只要睡得夠沉，大腦就不會發現生活有多難。" },
+      { img: "images/xiaobi-10.png", zh: "你剛剛說明天是星期一？請你立刻收回這句話。" },
+      { img: "images/xiaobi-11.png", zh: "運動是健康的，但我選擇把生命留給呼吸。" },
+      { img: "images/xiaobi-12.png", zh: "搶什麼搶？反正裡面記的也全都是廢話。" },
+      { img: "images/xiaobi-13.png", zh: "書上寫滿了大道理，但沒一條教我怎麼發財。" },
+      { img: "images/xiaobi-14.png", zh: "我靜靜看著你把事情搞砸，完全不意外。" },
+      { img: "images/xiaobi-15.png", zh: "聽我一句勸，現在立刻放棄還來得及。" }
+    ];
+
+    const lyingImages = [
+      "images/xiaobi-01.png",
+      "images/xiaobi-03.png",
+      "images/xiaobi-04.png",
+      "images/xiaobi-05.png",
+      "images/xiaobi-07.png",
+      "images/xiaobi-08.png",
+      "images/xiaobi-09.png"
+    ];
+
+    const lyingQuotes = [
+      "正在退出演化，爭取重新變成一攤液體。",
+      "今天的努力額度已於上午九點零三分告罄。",
+      "耳朵耷拉下來，是為了不接收來自現實的訊號。",
+      "我不是在思考，我只是在等靈魂重新連線。",
+      "地心引力是我今天最合拍的工作夥伴。",
+      "連肚子上的贅肉都比我有明確的人生方向。",
+      "別跟我談夢想，我的夢想就是不用起床。",
+      "只要我不動，問題就追不上我的代謝速度。",
+      "我趴著不是因為累，是因為站著太耗電了。",
+      "把今天過完就很了不起了，別要求太多。",
+      "今天適合做的事情：呼吸、放空、等下班。",
+      "我的靈魂已經下班了，現在留下的只是碳基空殼。",
+      "逃避雖然可恥，但是真的超級輕鬆。",
+      "世界如此喧鬧，而我只想安靜地發霉。",
+      "人生就像心電圖，如果一帆風順，代表你掛了。",
+      "努力不一定會成功，但不努力真的很舒服。",
+      "今日能量已耗盡，請於下個世紀再行嘗試。",
+      "我在進行低耗能生存實驗，請勿打擾。",
+      "雖然什麼都沒做，但已經覺得辛苦自己了。",
+      "不要問我幾點，反正都不會是我醒來的時間。",
+      "只要躺得夠平，資本家的鐮刀就割不到我。",
+      "我的耐性比這張桌子的反光還要脆弱。",
+      "這不是懶，這是對忙碌社會的一種非暴力抗爭。",
+      "萬事開頭難，中間難，最後也挺難的，乾脆趴著。",
+      "大腦已進入省電模式，請勿手動喚醒。",
+      "今天也是平平無奇、只想回家躺著的一天。",
+      "只要學會放棄，人生就會少走八十萬個彎路。",
+      "不要逼我動腦，我腦袋裡現在只有無訊號藍畫面。",
+      "把期待降到零，生活處處都是小驚喜（並沒有）。",
+      "我今天唯一的目標，就是平安耗完電池。",
+      "與其精神內耗自己，不如乾脆癱倒發呆。",
+      "如果事情能自己解決，那還要我努力幹嘛？",
+      "呼吸也是一種消耗，我已經很努力活著了。"
+    ];
+
+    let lastQuote = "";
+
+    function drawCard() {
+      let chosenImg = "";
+      let chosenZh = "";
+
+      if (Math.random() < 0.7) {
+        chosenImg = lyingImages[Math.floor(Math.random() * lyingImages.length)];
+        do {
+          chosenZh = lyingQuotes[Math.floor(Math.random() * lyingQuotes.length)];
+        } while (chosenZh === lastQuote && lyingQuotes.length > 1);
+      } else {
+        const special = specialCards[Math.floor(Math.random() * specialCards.length)];
+        chosenImg = special.img;
+        chosenZh = special.zh;
+      }
+
+      lastQuote = chosenZh;
+
+      const imgElement = document.getElementById("cardImage");
+      imgElement.style.opacity = '0.3';
+      setTimeout(() => {
+        imgElement.src = chosenImg;
+        document.getElementById("quoteZh").innerText = chosenZh;
+        imgElement.style.opacity = '1';
+      }, 150);
+    }
+
+    const AUTO_CHANGE_INTERVAL = 10000;
+    let timer = setInterval(drawCard, AUTO_CHANGE_INTERVAL);
+
+    function manualDraw() {
+      clearInterval(timer);
+      drawCard();
+      timer = setInterval(drawCard, AUTO_CHANGE_INTERVAL);
+    }
+
+    window.onload = () => {
+      drawCard();
+    };
+  </script>
+</body>
+</html>
