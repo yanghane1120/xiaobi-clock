@@ -1,0 +1,15 @@
+{
+  "name": "小比兔 每日躺平指引",
+  "short_name": "小比躺平",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
