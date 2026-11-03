@@ -4,16 +4,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>lazy life. | XiaoBi Clock</title>
-  
-  <!-- 瀏覽器分頁圖示 (標準相容性寫法) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230ea5e9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,Arial,sans-serif' font-size='32' font-weight='900' fill='%23ffffff'%3ELL%3C/text%3E%3C/svg%3E">
-  <link rel="alternate icon" href="images/icon-512.png">
-  <link rel="apple-touch-icon" href="images/icon-512.png">
+
+  <!-- 瀏覽器分頁圖示 (動態繪製水藍底白字 LL，徹底免疫快取與路徑失效) -->
+  <link id="faviconTag" rel="icon" type="image/png">
+  <script>
+    (function initLLFavicon() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+
+      // 圓角水藍底色 (#0ea5e9)
+      ctx.fillStyle = '#0ea5e9';
+      const r = 16;
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(64 - r, 0);
+      ctx.quadraticCurveTo(64, 0, 64, r);
+      ctx.lineTo(64, 64 - r);
+      ctx.quadraticCurveTo(64, 64, 64 - r, 64);
+      ctx.lineTo(r, 64);
+      ctx.quadraticCurveTo(0, 64, 0, 64 - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // 白色 LL 文字
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 32px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('LL', 32, 35);
+
+      const faviconLink = document.getElementById('faviconTag') || document.querySelector("link[rel*='icon']");
+      if (faviconLink) {
+        faviconLink.href = canvas.toDataURL('image/png');
+      }
+    })();
+  </script>
 
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="XiaoBi Clock">
+  <link rel="apple-touch-icon" href="images/icon-512.png">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
