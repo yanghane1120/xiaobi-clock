@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>lazy life. | XiaoBi Clock</title>
   
-  <!-- 瀏覽器分頁圖示 (Favicon: 水藍底白字 LL) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%230ea5e9'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,Arial,sans-serif' font-size='32' font-weight='900' fill='%23ffffff'>LL</text></svg>">
+  <!-- 瀏覽器分頁圖示 (標準相容性寫法) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230ea5e9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='-apple-system,BlinkMacSystemFont,Arial,sans-serif' font-size='32' font-weight='900' fill='%23ffffff'%3ELL%3C/text%3E%3C/svg%3E">
+  <link rel="alternate icon" href="images/icon-512.png">
+  <link rel="apple-touch-icon" href="images/icon-512.png">
 
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="XiaoBi Clock">
-  <link rel="apple-touch-icon" href="images/icon-512.png">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -376,7 +377,6 @@
       }
     };
 
-    // 專屬特殊動作圖檔（多語言對照）
     const specialCards = [
       {
         img: "images/xiaobi-02.png",
@@ -446,7 +446,6 @@
       "images/xiaobi-09.png"
     ];
 
-    // 萬能趴姿廢話（多語言對照池）
     const lyingQuotes = {
       zh: [
         "正在退出演化，爭取重新變成一攤液體。",
@@ -539,7 +538,6 @@
       currentLang = lang;
       const t = uiTexts[lang] || uiTexts.zh;
 
-      // 更新介面 UI 文字
       document.getElementById('tabClock').innerText = t.tabClock;
       document.getElementById('tabPomo').innerText = t.tabPomo;
       document.getElementById('tabAlarm').innerText = t.tabAlarm;
@@ -560,7 +558,6 @@
       }
       document.getElementById('drawBtn').innerText = t.drawBtn;
 
-      // 更新語言選單外觀
       const btns = document.querySelectorAll('.lang-btn');
       const langKeys = ['zh', 'en', 'ja', 'de', 'fr'];
       btns.forEach((btn, idx) => {
@@ -572,10 +569,9 @@
       });
 
       localStorage.setItem('xiaobi_clock_lang', lang);
-      drawCard(); // 切換語言時同步刷新卡牌台詞
+      drawCard();
     }
 
-    // === 音效系統 ===
     let customAudioUrl = null;
     let audioCtx = null;
 
@@ -628,7 +624,6 @@
       }
     }
 
-    // === 模式切換 ===
     let currentMode = 'clock';
 
     function switchMode(mode) {
@@ -647,7 +642,6 @@
       if (mode === 'alarm') updateClock();
     }
 
-    // === 時鐘與鬧鐘 ===
     let alarmTime = null;
     let alarmTriggered = false;
 
@@ -696,7 +690,6 @@
       document.getElementById('quoteText').innerText = uiTexts[currentLang].alarmAlert;
     }
 
-    // === 番茄鐘 ===
     let pomoSeconds = 25 * 60;
     let pomoTimer = null;
     let isPomoRunning = false;
@@ -742,7 +735,6 @@
       renderPomoDisplay();
     }
 
-    // === 抽卡與金句生成（支援語言同步） ===
     let lastQuote = "";
 
     function drawCard() {
@@ -783,7 +775,6 @@
     }
 
     window.onload = () => {
-      // 讀取 portal 入口頁面共享的語言設定或時鐘本地記憶
       const savedLang = localStorage.getItem('xiaobi_clock_lang') || localStorage.getItem('xiaobi_lang') || 'zh';
       setLang(savedLang);
     };
